@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CodeLocal — Agente de Codificação</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-mark">⌘</div><div><strong>CodeLocal</strong><small>Agente de codificação</small></div></div>
+    <button class="new-chat" id="newChat">＋ Nova conversa</button>
+    <div class="history-tools"><input id="chatSearch" type="search" placeholder="Buscar conversa…" aria-label="Buscar conversa"></div>
+    <div class="side-label history-label">HISTÓRICO</div>
+    <div id="chatList" class="chat-list" aria-label="Conversas salvas"></div>
+    <div class="side-label">ESPAÇO DE TRABALHO</div>
+    <div class="workspace-card"><span class="folder-icon">▣</span><div><b>workspace/</b><small>Arquivos salvos com sua autorização</small></div></div>
+    <div class="side-note">Este agente sugere e gera código. Ele não executa comandos nem lê seu projeto automaticamente.</div>
+    <div class="sidebar-bottom"><span class="status-dot"></span> Modelo local via Ollama</div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="mobile-brand">⌘ CodeLocal</div>
+      <div class="topbar-actions"><button id="exportChat" class="top-action" type="button" title="Exportar conversa">Exportar</button><button id="themeToggle" class="top-action" type="button" title="Alternar tema">☀ Claro</button></div>
+      <div class="model-area"><span class="muted">MODELO</span><select id="modelSelect"><option value="{{ default_model }}">{{ default_model }}</option></select><span id="connection" class="connection">Verificando Ollama…</span></div>
+    </header>
+
+    <section class="content" id="content">
+      <div class="welcome" id="welcome">
+        <div class="welcome-icon">⌘</div>
+        <div class="eyebrow">SEU ASSISTENTE DE PROGRAMAÇÃO LOCAL</div>
+        <h1>O que vamos <span>construir</span> hoje?</h1>
+        <p>Descreva uma tarefa de programação. O modelo local ajuda a planejar, escrever, explicar e revisar seu código.</p>
+        <div class="suggestions">
+          <button class="suggestion" data-prompt="Crie uma função Python que valide um endereço de e-mail, com exemplos e testes."><b>⌁</b><span><strong>Gerar uma função</strong><small>Crie código a partir de uma descrição</small></span></button>
+          <button class="suggestion" data-prompt="Explique este conceito de programação com um exemplo simples: orientação a objetos."><b>◇</b><span><strong>Explicar um conceito</strong><small>Aprenda com exemplos práticos</small></span></button>
+          <button class="suggestion" data-prompt="Crie uma página responsiva de login com HTML, CSS e JavaScript juntos em um único bloco de código HTML. Coloque o CSS dentro de <style> e o JavaScript dentro de <script>. Não separe em blocos diferentes."><b>▤</b><span><strong>Criar uma interface</strong><small>Gere HTML, CSS e JavaScript</small></span></button>
+          <button class="suggestion" data-prompt="Revise o código abaixo, aponte possíveis erros e sugira uma versão melhorada:\n\n[cole seu código aqui]"><b>⌕</b><span><strong>Revisar código</strong><small>Encontre problemas e melhorias</small></span></button>
+        </div>
+      </div>
+      <div id="conversation" class="conversation" aria-live="polite"></div>
+    </section>
+
+    <section class="composer-wrap">
+      <form id="promptForm" class="composer">
+        <textarea id="prompt" rows="3" placeholder="Descreva o código que deseja criar ou cole um trecho para revisar…" required></textarea>
+        <div class="composer-footer">
+          <span>Enter para enviar · Shift + Enter para nova linha</span>
+          <button id="sendBtn" type="submit"><span>Gerar resposta</span> <b>↑</b></button>
+        </div>
+      </form>
+      <div class="disclaimer">Respostas locais via Ollama · Revise o código antes de utilizá-lo · <span id="responseStatus">Pronto</span></div>
+    </section>
+  </main>
+</div>
+
+<dialog id="saveDialog">
+  <form method="dialog" id="saveForm">
+    <div class="dialog-head"><strong>Salvar código gerado</strong><button class="icon-button" value="cancel" aria-label="Fechar">×</button></div>
+    <p>O arquivo será criado dentro de <code>workspace/</code>. Arquivos existentes nunca serão substituídos; se o nome já estiver em uso, escolha outro.</p>
+    <label for="filePath">Caminho relativo do arquivo</label>
+    <input id="filePath" value="codigo.txt" required pattern="[^\\]*" placeholder="ex.: src/app.py">
+    <div class="dialog-actions"><button class="secondary" value="cancel">Cancelar</button><button class="primary" id="confirmSave" value="default">Confirmar e salvar</button></div>
+  </form>
+</dialog>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

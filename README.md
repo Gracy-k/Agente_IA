@@ -10,7 +10,7 @@ Agente de programação com Flask, SQLite e Ollama. Interface em português, his
 ## Instalação
 
 ```bash
-ollama pull llama3.2:1b **Essa é a versão de testes se for usar outra, modifique nos arquivos e caso seja preciso fazer no pull**
+ollama pull llama3.2:1b `Essa é a versão de testes se for usar outra, modifique nos arquivos e caso seja preciso fazer no pull`
 pip install -r requirements.txt
 python app.py
 ```

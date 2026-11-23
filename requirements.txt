@@ -1,2 +1,6 @@
+# Base: chat, pesquisa na internet e voz (tudo leve, roda na CPU)
 Flask>=3.0,<4.0
 requests>=2.31,<3.0
+ddgs>=9.0
+faster-whisper>=1.1
+piper-tts>=1.2

@@ -2,3 +2,6 @@
 __pycache__/
 *.pyc
 .env
+conversas.db
+workspace/imagens/
+modelos_voz/

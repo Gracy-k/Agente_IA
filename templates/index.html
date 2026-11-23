@@ -37,6 +37,7 @@
           <button class="suggestion" data-prompt="Crie uma função Python que valide um endereço de e-mail, com exemplos e testes."><b>⌁</b><span><strong>Gerar uma função</strong><small>Crie código a partir de uma descrição</small></span></button>
           <button class="suggestion" data-prompt="Explique este conceito de programação com um exemplo simples: orientação a objetos."><b>◇</b><span><strong>Explicar um conceito</strong><small>Aprenda com exemplos práticos</small></span></button>
           <button class="suggestion" data-prompt="Crie uma página responsiva de login com HTML, CSS e JavaScript juntos em um único bloco de código HTML. Coloque o CSS dentro de <style> e o JavaScript dentro de <script>. Não separe em blocos diferentes."><b>▤</b><span><strong>Criar uma interface</strong><small>Gere HTML, CSS e JavaScript</small></span></button>
+          <button class="suggestion" data-prompt="Gere uma imagem de um gato astronauta flutuando no espaço, estilo ilustração digital colorida."><b>▨</b><span><strong>Gerar uma imagem</strong><small>Ilustrações, logos e artes via Stable Diffusion</small></span></button>
           <button class="suggestion" data-prompt="Revise o código abaixo, aponte possíveis erros e sugira uma versão melhorada:\n\n[cole seu código aqui]"><b>⌕</b><span><strong>Revisar código</strong><small>Encontre problemas e melhorias</small></span></button>
         </div>
       </div>
@@ -47,13 +48,35 @@
       <form id="promptForm" class="composer">
         <textarea id="prompt" rows="3" placeholder="Descreva o código que deseja criar ou cole um trecho para revisar…" required></textarea>
         <div class="composer-footer">
-          <span>Enter para enviar · Shift + Enter para nova linha</span>
+          <div class="mode-controls">
+            <select id="modeSelect" aria-label="Modo do agente" title="Modo do agente">
+              <option value="auto">✦ Automático</option>
+              <option value="codigo">⌘ Código</option>
+              <option value="imagem">▨ Imagem</option>
+              <option value="web">◎ Pesquisa web</option>
+            </select>
+            <select id="sizeSelect" aria-label="Formato da imagem" title="Formato da imagem">
+              <option value="quadrado">Quadrado</option>
+              <option value="paisagem">Paisagem</option>
+              <option value="retrato">Retrato</option>
+            </select>
+            <span class="hint">Enter para enviar · Shift + Enter para nova linha</span>
+          </div>
+          <button id="voiceBtn" class="voice-btn" type="button" title="Conversar por voz">🎙 Voz</button>
           <button id="sendBtn" type="submit"><span>Gerar resposta</span> <b>↑</b></button>
         </div>
       </form>
       <div class="disclaimer">Respostas locais via Ollama · Revise o código antes de utilizá-lo · <span id="responseStatus">Pronto</span></div>
     </section>
   </main>
+</div>
+
+<div id="liveOverlay" class="live-overlay" hidden>
+  <div class="live-orb" id="liveOrb"></div>
+  <div class="live-state" id="liveState">Ouvindo…</div>
+  <div class="live-text" id="liveText">Pode falar. Eu respondo quando você fizer uma pausa.</div>
+  <div class="live-hint">Fale por cima para interromper a resposta.</div>
+  <button id="liveStop" class="live-stop" type="button">Encerrar conversa</button>
 </div>
 
 <dialog id="saveDialog">
@@ -66,5 +89,6 @@
   </form>
 </dialog>
 <script src="{{ url_for('static', filename='app.js') }}"></script>
+<script src="{{ url_for('static', filename='voz.js') }}"></script>
 </body>
 </html>

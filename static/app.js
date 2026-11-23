@@ -57,7 +57,7 @@ function renderMarkdownLite(text) {
   if (rest) html += `<div>${escapeHtml(rest).replace(/\n/g, "<br>")}</div>`;
   return html;
 }
-function addMessage(kind, label, body, scroll = true) {
+function addMessage(kind, label, body, scroll = true, image = null) {
   const article = document.createElement("article");
   article.className = `message ${kind}`;
   const head = document.createElement("div");
@@ -66,6 +66,18 @@ function addMessage(kind, label, body, scroll = true) {
   const content = document.createElement("div");
   content.className = "message-body";
   content.innerHTML = renderMarkdownLite(body);
+  if (image) {
+    const link = document.createElement("a");
+    link.href = `/imagens/${encodeURIComponent(image)}`;
+    link.target = "_blank";
+    const img = document.createElement("img");
+    img.className = "generated-image";
+    img.src = link.href;
+    img.alt = "Imagem gerada";
+    img.loading = "lazy";
+    link.append(img);
+    content.prepend(link);
+  }
   article.append(head, content);
   if (kind === "assistant") {
     const toolbar = document.createElement("div");
@@ -75,6 +87,17 @@ function addMessage(kind, label, body, scroll = true) {
     copyAll.textContent = "Copiar resposta";
     copyAll.onclick = () => copyText(body, copyAll, "Copiado!");
     toolbar.append(copyAll);
+    if (image) {
+      const download = document.createElement("a");
+      download.className = "button-link";
+      download.href = `/imagens/${encodeURIComponent(image)}`;
+      download.download = image;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = "Baixar imagem";
+      download.append(btn);
+      toolbar.append(download);
+    }
     const blocks = [...content.querySelectorAll("pre code")];
     const saveAll = document.createElement("button");
     saveAll.type = "button";
@@ -205,6 +228,7 @@ async function openChat(id) {
         m.role === "user" ? "VOCÊ" : `ASSISTENTE · ${data.chat.model}`,
         m.content,
         false,
+        m.image,
       );
     });
     await refreshChatList();
@@ -280,6 +304,8 @@ async function streamAnswer(prompt, pending, assistantMessage) {
       prompt,
       model: $("modelSelect").value,
       chat_id: currentChatId,
+      mode: $("modeSelect").value,
+      size: $("sizeSelect").value,
     }),
   });
   if (!response.ok) {
@@ -290,6 +316,7 @@ async function streamAnswer(prompt, pending, assistantMessage) {
     decoder = new TextDecoder();
   let buffer = "",
     answer = "",
+    image = null,
     done = false;
   while (!done) {
     const { value, done: ended } = await reader.read();
@@ -302,6 +329,11 @@ async function streamAnswer(prompt, pending, assistantMessage) {
       if (!line) continue;
       const packet = JSON.parse(line.slice(6));
       if (packet.error) throw new Error(packet.error);
+      if (packet.status) {
+        assistantMessage.content.innerHTML = `<div class="agent-status">${escapeHtml(packet.status)}</div>`;
+        $("responseStatus").textContent = packet.status;
+      }
+      if (packet.image) image = packet.image;
       if (packet.token) {
         answer += packet.token;
         assistantMessage.content.innerHTML = renderMarkdownLite(answer);
@@ -314,6 +346,8 @@ async function streamAnswer(prompt, pending, assistantMessage) {
     "assistant",
     `ASSISTENTE · ${$("modelSelect").value}`,
     answer,
+    true,
+    image,
   );
   currentMessages.push(
     { role: "user", content: prompt },
@@ -422,7 +456,37 @@ $("exportChat").addEventListener("click", async () => {
     alert(e.message);
   }
 });
+function syncModeUi() {
+  const mode = $("modeSelect").value;
+  $("sizeSelect").hidden = mode === "codigo" || mode === "web";
+  promptBox.placeholder =
+    mode === "imagem"
+      ? "Descreva a imagem que deseja gerar (em português mesmo)…"
+      : "Descreva o código que deseja criar, cole um trecho para revisar ou peça uma imagem…";
+}
+$("modeSelect").addEventListener("change", syncModeUi);
+syncModeUi();
+async function checkStatus() {
+  try {
+    const data = await api("/api/status");
+    $("modeSelect").querySelector('[value="imagem"]').textContent =
+      data.imagem.available ? "▨ Imagem" : "▨ Imagem (indisponível)";
+    $("modeSelect").querySelector('[value="imagem"]').title = data.imagem.detail;
+    $("voiceBtn").title = data.voz.available ? "Conversar por voz" : data.voz.detail;
+  } catch (_) {}
+}
 (async () => {
+  checkStatus();
   await loadModels();
   await refreshChatList();
 })();
+
+// Ligações usadas pelo modo de voz (static/voz.js)
+window.currentChatIdForVoice = () => currentChatId;
+window.createChatForVoice = createChat;
+window.showVoiceTurn = async (data) => {
+  $("welcome").style.display = "none";
+  addMessage("user", "VOCÊ · voz", data.text);
+  addMessage("assistant", `ASSISTENTE · ${$("modelSelect").value}`, data.answer, true, data.image);
+  await refreshChatList();
+};

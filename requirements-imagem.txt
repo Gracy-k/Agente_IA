@@ -1,0 +1,8 @@
+# Gerador de imagem embutido (SD-Turbo).
+# Notebook com NVIDIA (ex.: GTX 1050): instale ANTES o torch com CUDA:
+#   pip install torch --index-url https://download.pytorch.org/whl/cu121
+# Sem NVIDIA: o comando abaixo instala a versão para CPU.
+torch>=2.2
+diffusers>=0.30
+transformers>=4.40
+accelerate>=0.30

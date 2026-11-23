@@ -1,94 +1,182 @@
 <!doctype html>
+<!-- Define o documento como HTML5 e declara o idioma como português do Brasil -->
 <html lang="pt-BR">
+<!-- Cabeçalho da página com metadados, título e folha de estilos -->
 <head>
+  <!-- Define a codificação de caracteres como UTF-8 (suporta acentos e emojis) -->
   <meta charset="utf-8">
+  <!-- Ajusta a largura da página para telas de computador e celular (responsivo) -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Título exibido na aba do navegador -->
   <title>CodeLocal — Agente de Codificação</title>
+  <!-- Carrega o arquivo CSS principal usando a rota estática do Flask -->
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<!-- Fecha o cabeçalho da página -->
 </head>
+<!-- Corpo visível da interface web -->
 <body>
+<!-- Contêiner principal que divide a tela entre barra lateral e área de chat -->
 <div class="app-shell">
+  <!-- Barra lateral esquerda com histórico de conversas e informações do workspace -->
   <aside class="sidebar">
+    <!-- Logotipo e nome da aplicação -->
     <div class="brand"><div class="brand-mark">⌘</div><div><strong>CodeLocal</strong><small>Agente de codificação</small></div></div>
+    <!-- Botão para iniciar uma nova conversa vazia -->
     <button class="new-chat" id="newChat">＋ Nova conversa</button>
+    <!-- Campo de busca para filtrar conversas salvas pelo título -->
     <div class="history-tools"><input id="chatSearch" type="search" placeholder="Buscar conversa…" aria-label="Buscar conversa"></div>
+    <!-- Rótulo da seção de histórico -->
     <div class="side-label history-label">HISTÓRICO</div>
+    <!-- Lista dinâmica preenchida pelo JavaScript com as conversas do SQLite -->
     <div id="chatList" class="chat-list" aria-label="Conversas salvas"></div>
+    <!-- Rótulo da seção do espaço de trabalho -->
     <div class="side-label">ESPAÇO DE TRABALHO</div>
+    <!-- Cartão informativo indicando onde os arquivos salvos ficam guardados -->
     <div class="workspace-card"><span class="folder-icon">▣</span><div><b>workspace/</b><small>Arquivos salvos com sua autorização</small></div></div>
+    <!-- Aviso de segurança sobre os limites do agente -->
     <div class="side-note">Este agente sugere e gera código. Ele não executa comandos nem lê seu projeto automaticamente.</div>
+    <!-- Rodapé da barra lateral indicando execução local via Ollama -->
     <div class="sidebar-bottom"><span class="status-dot"></span> Modelo local via Ollama</div>
+  <!-- Fecha a barra lateral -->
   </aside>
 
+  <!-- Área principal à direita (barra superior, conversa e caixa de envio) -->
   <main class="main">
+    <!-- Barra superior com marca mobile, botões de ação e seletor de modelo -->
     <header class="topbar">
+      <!-- Nome exibido em telas pequenas quando a barra lateral recolhe -->
       <div class="mobile-brand">⌘ CodeLocal</div>
+      <!-- Botões de exportar conversa para Markdown e alternar tema claro/escuro -->
       <div class="topbar-actions"><button id="exportChat" class="top-action" type="button" title="Exportar conversa">Exportar</button><button id="themeToggle" class="top-action" type="button" title="Alternar tema">☀ Claro</button></div>
+      <!-- Seletor de modelos do Ollama e indicador de conexão -->
       <div class="model-area"><span class="muted">MODELO</span><select id="modelSelect"><option value="{{ default_model }}">{{ default_model }}</option></select><span id="connection" class="connection">Verificando Ollama…</span></div>
+    <!-- Fecha a barra superior -->
     </header>
 
+    <!-- Seção central rolável que mostra a tela de boas-vindas ou a conversa ativa -->
     <section class="content" id="content">
+      <!-- Tela inicial exibida antes de enviar a primeira mensagem -->
       <div class="welcome" id="welcome">
+        <!-- Ícone decorativo de boas-vindas -->
         <div class="welcome-icon">⌘</div>
+        <!-- Subtítulo superior de destaque -->
         <div class="eyebrow">SEU ASSISTENTE DE PROGRAMAÇÃO LOCAL</div>
+        <!-- Título principal da tela inicial -->
         <h1>O que vamos <span>construir</span> hoje?</h1>
+        <!-- Breve descrição do papel do assistente -->
         <p>Descreva uma tarefa de programação. O modelo local ajuda a planejar, escrever, explicar e revisar seu código.</p>
+        <!-- Grade de botões com prompts prontos para facilitar o primeiro uso -->
         <div class="suggestions">
+          <!-- Sugestão 1: gerar função Python -->
           <button class="suggestion" data-prompt="Crie uma função Python que valide um endereço de e-mail, com exemplos e testes."><b>⌁</b><span><strong>Gerar uma função</strong><small>Crie código a partir de uma descrição</small></span></button>
+          <!-- Sugestão 2: explicar conceito de programação -->
           <button class="suggestion" data-prompt="Explique este conceito de programação com um exemplo simples: orientação a objetos."><b>◇</b><span><strong>Explicar um conceito</strong><small>Aprenda com exemplos práticos</small></span></button>
+          <!-- Sugestão 3: criar página HTML/CSS/JS em arquivo único -->
           <button class="suggestion" data-prompt="Crie uma página responsiva de login com HTML, CSS e JavaScript juntos em um único bloco de código HTML. Coloque o CSS dentro de <style> e o JavaScript dentro de <script>. Não separe em blocos diferentes."><b>▤</b><span><strong>Criar uma interface</strong><small>Gere HTML, CSS e JavaScript</small></span></button>
+          <!-- Sugestão 4: gerar imagem via Stable Diffusion -->
           <button class="suggestion" data-prompt="Gere uma imagem de um gato astronauta flutuando no espaço, estilo ilustração digital colorida."><b>▨</b><span><strong>Gerar uma imagem</strong><small>Ilustrações, logos e artes via Stable Diffusion</small></span></button>
+          <!-- Sugestão 5: revisar trecho de código -->
           <button class="suggestion" data-prompt="Revise o código abaixo, aponte possíveis erros e sugira uma versão melhorada:\n\n[cole seu código aqui]"><b>⌕</b><span><strong>Revisar código</strong><small>Encontre problemas e melhorias</small></span></button>
+        <!-- Fecha a grade de sugestões -->
         </div>
+      <!-- Fecha a tela de boas-vindas -->
       </div>
+      <!-- Contêiner onde as mensagens da conversa são inseridas dinamicamente -->
       <div id="conversation" class="conversation" aria-live="polite"></div>
+    <!-- Fecha a seção central -->
     </section>
 
+    <!-- Área inferior fixa com o formulário de envio de mensagens -->
     <section class="composer-wrap">
+      <!-- Formulário capturado pelo static/app.js para enviar prompts -->
       <form id="promptForm" class="composer">
+        <!-- Campo de texto multilinha onde o usuário digita o pedido -->
         <textarea id="prompt" rows="3" placeholder="Descreva o código que deseja criar ou cole um trecho para revisar…" required></textarea>
+        <!-- Rodapé do compositor com seletores de modo, botão de voz e botão enviar -->
         <div class="composer-footer">
+          <!-- Controles de modo de operação e proporção da imagem -->
           <div class="mode-controls">
+            <!-- Seletor do modo do agente (Automático, Código, Imagem ou Pesquisa web) -->
             <select id="modeSelect" aria-label="Modo do agente" title="Modo do agente">
+              <!-- Modo automático: o servidor decide entre código, imagem ou busca web -->
               <option value="auto">✦ Automático</option>
+              <!-- Modo código: responde direto com o LLM sem buscar nem gerar imagem -->
               <option value="codigo">⌘ Código</option>
+              <!-- Modo imagem: força a geração de imagem pelo SD-Turbo -->
               <option value="imagem">▨ Imagem</option>
+              <!-- Modo pesquisa web: força a busca na internet antes de responder -->
               <option value="web">◎ Pesquisa web</option>
+            <!-- Fecha o seletor de modo -->
             </select>
+            <!-- Seletor do formato/resolução da imagem gerada -->
             <select id="sizeSelect" aria-label="Formato da imagem" title="Formato da imagem">
+              <!-- 512x512 pixels -->
               <option value="quadrado">Quadrado</option>
+              <!-- 640x384 pixels -->
               <option value="paisagem">Paisagem</option>
+              <!-- 384x640 pixels -->
               <option value="retrato">Retrato</option>
+            <!-- Fecha o seletor de formato -->
             </select>
+            <!-- Dica de atalhos de teclado -->
             <span class="hint">Enter para enviar · Shift + Enter para nova linha</span>
+          <!-- Fecha os controles de modo -->
           </div>
+          <!-- Botão que ativa a conversa contínua por voz (controlado por static/voz.js) -->
           <button id="voiceBtn" class="voice-btn" type="button" title="Conversar por voz">🎙 Voz</button>
+          <!-- Botão de envio do formulário de texto -->
           <button id="sendBtn" type="submit"><span>Gerar resposta</span> <b>↑</b></button>
+        <!-- Fecha o rodapé do compositor -->
         </div>
+      <!-- Fecha o formulário -->
       </form>
+      <!-- Aviso inferior com status em tempo real da resposta -->
       <div class="disclaimer">Respostas locais via Ollama · Revise o código antes de utilizá-lo · <span id="responseStatus">Pronto</span></div>
+    <!-- Fecha a área do compositor -->
     </section>
+  <!-- Fecha a área principal -->
   </main>
+<!-- Fecha o contêiner da aplicação -->
 </div>
 
+<!-- Tela sobreposta (overlay) exibida durante o modo de conversa por voz -->
 <div id="liveOverlay" class="live-overlay" hidden>
+  <!-- Esfera animada que reage ao volume da fala e ao estado do assistente -->
   <div class="live-orb" id="liveOrb"></div>
+  <!-- Rótulo do estado atual (Ouvindo, Pensando, Falando) -->
   <div class="live-state" id="liveState">Ouvindo…</div>
+  <!-- Legenda com instruções ou texto da última resposta falada -->
   <div class="live-text" id="liveText">Pode falar. Eu respondo quando você fizer uma pausa.</div>
+  <!-- Dica informando sobre a interrupção por voz (barge-in) -->
   <div class="live-hint">Fale por cima para interromper a resposta.</div>
+  <!-- Botão para encerrar o microfone e fechar o modo voz -->
   <button id="liveStop" class="live-stop" type="button">Encerrar conversa</button>
+<!-- Fecha o overlay de voz -->
 </div>
 
+<!-- Janela modal nativa para salvar código gerado dentro da pasta workspace/ -->
 <dialog id="saveDialog">
+  <!-- Formulário de diálogo para confirmar ou cancelar o salvamento -->
   <form method="dialog" id="saveForm">
+    <!-- Cabeçalho do modal com título e botão fechar -->
     <div class="dialog-head"><strong>Salvar código gerado</strong><button class="icon-button" value="cancel" aria-label="Fechar">×</button></div>
+    <!-- Explicação das regras de segurança ao salvar arquivos -->
     <p>O arquivo será criado dentro de <code>workspace/</code>. Arquivos existentes nunca serão substituídos; se o nome já estiver em uso, escolha outro.</p>
+    <!-- Rótulo do campo de caminho do arquivo -->
     <label for="filePath">Caminho relativo do arquivo</label>
+    <!-- Campo para o nome/caminho relativo (sem barra invertida) -->
     <input id="filePath" value="codigo.txt" required pattern="[^\\]*" placeholder="ex.: src/app.py">
+    <!-- Botões de cancelar e confirmar salvamento -->
     <div class="dialog-actions"><button class="secondary" value="cancel">Cancelar</button><button class="primary" id="confirmSave" value="default">Confirmar e salvar</button></div>
+  <!-- Fecha o formulário do modal -->
   </form>
+<!-- Fecha o modal de salvamento -->
 </dialog>
+<!-- Script principal da interface (chat, streaming SSE, histórico e tema) -->
 <script src="{{ url_for('static', filename='app.js') }}"></script>
+<!-- Script do modo de conversa por voz (microfone, silêncio, WAV e barge-in) -->
 <script src="{{ url_for('static', filename='voz.js') }}"></script>
+<!-- Fecha o corpo da página -->
 </body>
+<!-- Fecha o documento HTML -->
 </html>

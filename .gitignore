@@ -5,3 +5,4 @@ __pycache__/
 conversas.db
 workspace/imagens/
 modelos_voz/
+*.log
